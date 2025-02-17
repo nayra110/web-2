@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+    <title>Kualitas Udara Kota Sidoarjo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+	
+	@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+			  
+			  body {
+			font-family: 'Poppins', sans-serif;
+			margin: 0;
+			padding: 0;
+			background: #eef2f3;
+			color: #333;
+		}
+
+		.container {
+			width: 85%;
+			max-width: 1200px;
+			margin: 40px auto;
+			background: white;
+			padding: 30px;
+			border-radius: 12px;
+			box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+		}
+
+		.header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			background: linear-gradient(to right, #ff9966, #ff5e62);
+			padding: 18px;
+			border-radius: 12px;
+			color: white;
+		}
+
+		.status {
+			background: rgba(255, 255, 255, 0.2);
+			padding: 12px;
+			border-radius: 12px;
+			text-align: right;
+		}
+
+		.forecast {
+			margin-top: 20px;
+		}
+
+		.forecast-table {
+			width: 100%;
+			border-collapse: collapse;
+			border-radius: 12px;
+			overflow: hidden;
+		}
+
+		.forecast-table th, .forecast-table td {
+			border: 1px solid #ddd;
+			padding: 12px;
+			text-align: center;
+		}
+
+		.forecast-table th {
+			background: #f8f9fa;
+			font-weight: 600;
+		}
+
+		.forecast-table tr:hover {
+			background: #f1f1f1;
+			transition: 0.3s;
+		}
+
+		.good { background: #a3e4a3; }
+		.moderate { background: #f9e79f; }
+		.unhealthy { background: #ff5e62; color: white; }
+
+		.map-container {
+			width: 100%;
+			max-width: 1150px; /* Sesuaikan dengan desain utama */
+			height: 400px; /* Sesuaikan tinggi */
+			border-radius: 12px;
+			overflow: hidden;
+			box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); /* Tambahkan efek bayangan */
+			margin: 20px auto; /* Pusatkan secara horizontal */
+		}
+
+		#map {
+			width: 100%;
+			height: 100%;
+			border-radius: 12px;
+		}
+		
+		.face-icon {
+			width: 50px; /* Sesuaikan ukuran */
+			height: 50px;
+			stroke: white !important;
+			vertical-align: middle
+			
+		}
+		
+		.chart-container {
+			margin-top: 20px;
+			width: 100%;
+			height: 300px;
+			background: white;
+			padding: 15px;
+			border-radius: 12px;
+			box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+		}
+
+		#aqiChart {
+			width: 100%;
+			height: 100%;
+		}
+
+		
+        .forecast-container {
+			idth: 85%;
+			max-width: 1200px;
+			margin: 40px auto;
+			background: white;
+			padding: 30px;
+			border-radius: 12px;
+			box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        .forecast-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .forecast-table th, .forecast-table td {
+            padding: 12px;
+            text-align: center;
+        }
+        .forecast-table th {
+            background: #f8f9fa;
+        }
+        .aqi-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+        }
+        .good { background: #85c990; }
+        .moderate { background: #f9e79f; color: black; }
+        .unhealthy { background: #ff5e62; }
+		
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Kualitas Udara di Kota Tegal</h2>
+            <div class="status">
+				<h3>61 AQI  
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="face-icon">
+				  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9.75h.008v.008h-.008V9.75zm-7.5 0h.008v.008h-.008V9.75zM12 17.25a4.5 4.5 0 004.5-4.5h-9a4.5 4.5 0 004.5 4.5zM12 3.75a8.25 8.25 0 00-8.25 8.25 8.25 8.25 0 1016.5 0 8.25 8.25 0 00-8.25-8.25z" />
+				</svg>
+				</h3>
+                <p>Relatif cukup sehat</p>
+                <p>Polutan utama: PM2.5 (43 µg/m³)</p>
+            </div>
+        </div>
+        <div class="forecast">
+            <h3>Prakiraan per Jam</h3>
+            <table class="forecast-table">
+                <tr>
+                    <th>Waktu</th>
+                    <th>AQI</th>
+                    <th>Suhu</th>
+                    <th>Kecepatan Angin</th>
+                    <th>Kelembaban</th>
+                </tr>
+                <tr class="unhealthy">
+                    <td>12:00</td>
+                    <td>62</td>
+                    <td>29°C</td>
+                    <td>9.3 km/h</td>
+                    <td>89%</td>
+                </tr>
+                <tr class="moderate">
+                    <td>16:00</td>
+                    <td>61</td>
+                    <td>28°C</td>
+                    <td>7.2 km/h</td>
+                    <td>88%</td>
+                </tr>
+                <tr class="good">
+                    <td>23:00</td>
+                    <td>61</td>
+                    <td>29°C</td>
+                    <td>3.6 km/h</td>
+                    <td>94%</td>
+                </tr>
+            </table>
+			
+			 <div class="forecast-container">
+        
+        <table class="forecast-table">
+            <tr>
+                <th>Hari</th>
+                <th>AQI</th>
+                <th>Cuaca</th>
+                <th>Suhu</th>
+                <th>Angin</th>
+                <th>Kelembaban</th>
+            </tr>
+           <tr>
+				<td>Hari ini</td>
+				<td><span class="aqi-badge moderate">62</span></td>
+				<td><i class="fas fa-cloud-showers-heavy"></i> 100%</td>
+				<td>30°C</td>
+				<td>14 km/h</td>
+				<td><i class="fas fa-tint"></i> 61%</td>
+			</tr>
+			<tr>
+				<td>Sen</td>
+				<td><span class="aqi-badge moderate">61</span></td>
+				<td><i class="fas fa-cloud-showers-heavy"></i> 100%</td>
+				<td>32°C</td>
+				<td>18 km/h</td>
+				<td><i class="fas fa-tint"></i> 53%</td>
+			</tr>
+			<tr>
+				<td>Sel</td>
+				<td><span class="aqi-badge moderate">63</span></td>
+				<td><i class="fas fa-cloud-showers-heavy"></i> 100%</td>
+				<td>30°C</td>
+				<td>10 km/h</td>
+				<td><i class="fas fa-tint"></i> 59%</td>
+			</tr>
+			<tr>
+				<td>Rab</td>
+				<td><span class="aqi-badge moderate">64</span></td>
+				<td><i class="fas fa-cloud-showers-heavy"></i> 80%</td>
+				<td>27°C</td>
+				<td>7 km/h</td>
+				<td><i class="fas fa-tint"></i> 80%</td>
+			</tr>
+			<tr>
+				<td>Kam</td>
+				<td><span class="aqi-badge moderate">65</span></td>
+				<td><i class="fas fa-cloud-showers-heavy"></i> 64%</td>
+				<td>29°C</td>
+				<td>18 km/h</td>
+				<td><i class="fas fa-tint"></i> 64%</td>
+			</tr>
+
+        </table>
+				
+        </div>
+			<div class="chart-container">
+    <canvas id="aqiChart"></canvas>
+		</div>
+		
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+	
+    </div>
+    
+<script>
+
+		
+    var ctx = document.getElementById('aqiChart').getContext('2d');
+
+    var dataAqi = [65, 65, 65, 65, 65, 65, 65, 65, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88];
+	var labels = ['03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '00:00', '01:00', '02:00'];
+
+
+    var backgroundColors = dataAqi.map(value => {
+        if (value < 50) return '#FFD700'; // Kuning
+        if (value < 100) return '#FFA500'; // Oranye
+        return '#FF6347'; // Merah
+    });
+
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'µg/m³',
+                data: dataAqi,
+                backgroundColor: backgroundColors,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 150,
+                    ticks: {
+                        stepSize: 30
+                    }
+                }
+            }
+        }
+    });
+
+		// === LEAFLET.JS (Peta AQI) ===
+		// === LEAFLET.JS (Peta AQI) ===
+		var map = L.map('map', {
+		attributionControl: false // Menonaktifkan attribution bawaan
+			}).setView([-6.9055, 109.1852], 13);
+
+			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				// Hapus 'attribution' di sini agar tidak ditampilkan
+			}).addTo(map);
+
+		// Variabel untuk menyimpan status AQI saat ini
+		let currentAQI = 62;
+
+		function updateCircle() {
+			// Bergantian antara 62 dan 63 setiap update
+			currentAQI = currentAQI === 62 ? 63 : 62;
+			
+			let color = "#FFFF00"; // Warna tetap kuning
+			let emoji = '😐'; // Emoji tetap sesuai AQI
+
+			// Hapus lingkaran lama jika ada
+			if (window.aqiCircle) {
+				map.removeLayer(window.aqiCircle);
+			}
+
+			// Tambahkan lingkaran baru dengan ukuran tetap
+			window.aqiCircle = L.circle([-6.9055, 109.1852], {
+				color: color,
+				fillColor: color,
+				fillOpacity: 0.5,
+				radius: 1000 // Tetap 1000 meter
+			}).addTo(map);
+
+			// Perbarui popup pada marker dengan AQI terbaru
+			window.aqiMarker.setPopupContent(`Pangkah, Tegal<br>AQI: ${currentAQI} ${emoji}`).openPopup();
+		}
+
+		// Tambahkan marker untuk Pangkah, Tegal
+		window.aqiMarker = L.marker([-6.9055, 109.1852])
+			.addTo(map)
+			.bindPopup('Pangkah, Tegal<br>AQI: --')
+			.openPopup();
+
+		updateCircle(); // Panggil pertama kali
+		setInterval(updateCircle, 1000); // Perbarui setiap detik
+
+
+
+</script>
+
+
+
+</body>
+</html>
